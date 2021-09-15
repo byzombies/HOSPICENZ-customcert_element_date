@@ -17,12 +17,12 @@
 /**
  * This file contains the customcert element date's core interaction API.
  *
- * @package    customcertelement_date
+ * @package    customcertelement_dateadv
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace customcertelement_date;
+namespace customcertelement_dateadv;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -66,12 +66,17 @@ define('CUSTOMCERT_DATE_ENROLMENT_START', '-6');
  */
 define('CUSTOMCERT_DATE_ENROLMENT_END', '-7');
 
+/**
+ * Date - Most recent completed workshop
+ */
+define('CUSTOMCERT_DATE_RECENT_WORKSHOP_END', '-8');
+
 require_once ($CFG->dirroot . '/lib/grade/constants.php');
 
 /**
  * The customcert element date's core interaction API.
  *
- * @package    customcertelement_date
+ * @package    customcertelement_dateadv
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -87,25 +92,26 @@ class element extends \mod_customcert\element {
 
         // Get the possible date options.
         $dateoptions = array();
-        $dateoptions[CUSTOMCERT_DATE_ISSUE] = get_string('issueddate', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_CURRENT_DATE] = get_string('currentdate', 'customcertelement_date');
-        $completionenabled = $CFG->enablecompletion && ($COURSE->id == SITEID || $COURSE->enablecompletion);
-        if ($completionenabled) {
-            $dateoptions[CUSTOMCERT_DATE_COMPLETION] = get_string('completiondate', 'customcertelement_date');
-        }
-        $dateoptions[CUSTOMCERT_DATE_ENROLMENT_START] = get_string('enrolmentstartdate', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_ENROLMENT_END] = get_string('enrolmentenddate', 'customcertelement_date');
+        // $dateoptions[CUSTOMCERT_DATE_ISSUE] = get_string('issueddate', 'customcertelement_dateadv');
+        // $dateoptions[CUSTOMCERT_DATE_CURRENT_DATE] = get_string('currentdate', 'customcertelement_dateadv');
+        // $completionenabled = $CFG->enablecompletion && ($COURSE->id == SITEID || $COURSE->enablecompletion);
+        // if ($completionenabled) {
+        //     $dateoptions[CUSTOMCERT_DATE_COMPLETION] = get_string('completiondate', 'customcertelement_dateadv');
+        // }
+        // $dateoptions[CUSTOMCERT_DATE_ENROLMENT_START] = get_string('enrolmentstartdate', 'customcertelement_dateadv');
+        // $dateoptions[CUSTOMCERT_DATE_ENROLMENT_END] = get_string('enrolmentenddate', 'customcertelement_dateadv');
 
-        $dateoptions[CUSTOMCERT_DATE_COURSE_START] = get_string('coursestartdate', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_COURSE_END] = get_string('courseenddate', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_COURSE_GRADE] = get_string('coursegradedate', 'customcertelement_date');
-        $dateoptions = $dateoptions+\mod_customcert\element_helper::get_grade_items($COURSE);
+        // $dateoptions[CUSTOMCERT_DATE_COURSE_START] = get_string('coursestartdate', 'customcertelement_dateadv');
+        // $dateoptions[CUSTOMCERT_DATE_COURSE_END] = get_string('courseenddate', 'customcertelement_dateadv');
+        // $dateoptions[CUSTOMCERT_DATE_COURSE_GRADE] = get_string('coursegradedate', 'customcertelement_dateadv');
+        $dateoptions[CUSTOMCERT_DATE_RECENT_WORKSHOP_END] = get_string('mostrecentworkshopcompletiondate', 'customcertelement_dateadv');
+        // $dateoptions = $dateoptions+\mod_customcert\element_helper::get_grade_items($COURSE);
 
-        $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_date'), $dateoptions);
-        $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_date');
+        $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_dateadv'), $dateoptions);
+        $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_dateadv');
 
-        $mform->addElement('select', 'dateformat', get_string('dateformat', 'customcertelement_date'), self::get_date_formats());
-        $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_date');
+        $mform->addElement('select', 'dateformat', get_string('dateformat', 'customcertelement_dateadv'), self::get_date_formats());
+        $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_dateadv');
 
         parent::render_form_elements($mform);
     }
@@ -201,6 +207,18 @@ class element extends \mod_customcert\element {
                 $date = $DB->get_field('course', 'startdate', array('id' => $courseid));
             } else if ($dateitem == CUSTOMCERT_DATE_COURSE_END) {
                 $date = $DB->get_field('course', 'enddate', array('id' => $courseid));
+            } else if ($dateitem == CUSTOMCERT_DATE_RECENT_WORKSHOP_END) {
+
+                if ($result = $DB->get_record_sql(
+                    "SELECT ba.id, ba.userid,ba.completed, bo.coursestarttime, bo.courseendtime
+                    FROM {booking_answers} ba
+                    JOIN {booking_options} bo ON bo.id = ba.optionid
+                    WHERE ba.userid = 10 AND ba.completed = 1
+                    ORDER BY bo.courseendtime DESC")) {
+                    $date = $result->courseendtime;
+                } else {
+                    $date = time();
+                }
             } else {
                 if ($dateitem == CUSTOMCERT_DATE_COURSE_GRADE) {
                     $grade = \mod_customcert\element_helper::get_course_grade_info(
@@ -397,11 +415,11 @@ class element extends \mod_customcert\element {
             switch ($day % 10) {
                 // Handle 1st, 2nd, 3rd.
                 case 1:
-                    return get_string('numbersuffix_st_as_in_first', 'customcertelement_date');
+                    return get_string('numbersuffix_st_as_in_first', 'customcertelement_dateadv');
                 case 2:
-                    return get_string('numbersuffix_nd_as_in_second', 'customcertelement_date');
+                    return get_string('numbersuffix_nd_as_in_second', 'customcertelement_dateadv');
                 case 3:
-                    return get_string('numbersuffix_rd_as_in_third', 'customcertelement_date');
+                    return get_string('numbersuffix_rd_as_in_third', 'customcertelement_dateadv');
             }
         }
         return 'th';

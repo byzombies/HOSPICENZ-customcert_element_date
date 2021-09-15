@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'customcertelement_date', language 'en'.
+ * Strings for component 'customcertelement_dateadv', language 'en'.
  *
- * @package    customcertelement_date
+ * @package    customcertelement_dateadv
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -34,9 +34,10 @@ $string['dateformat_help'] = 'This is the format of the date that will be displa
 $string['dateitem'] = 'Date item';
 $string['dateitem_help'] = 'This will be the date that is printed on the certificate';
 $string['issueddate'] = 'Issued date';
-$string['pluginname'] = 'Date';
+$string['pluginname'] = 'Date Advanced';
 $string['privacy:metadata'] = 'The Date plugin does not store any personal data.';
 $string['numbersuffix_nd_as_in_second'] = 'nd';
 $string['numbersuffix_rd_as_in_third'] = 'rd';
 $string['numbersuffix_st_as_in_first'] = 'st';
 $string['userdateformat'] = 'User date format';
+$string['mostrecentworkshopcompletiondate'] = 'Most recently completed workshop date';
