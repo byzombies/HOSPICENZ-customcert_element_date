@@ -213,8 +213,9 @@ class element extends \mod_customcert\element {
                     "SELECT ba.id, ba.userid,ba.completed, bo.coursestarttime, bo.courseendtime
                     FROM {booking_answers} ba
                     JOIN {booking_options} bo ON bo.id = ba.optionid
-                    WHERE ba.userid = 10 AND ba.completed = 1
-                    ORDER BY bo.courseendtime DESC")) {
+                    JOIN {booking} AS b ON bo.bookingid = b.id
+                    WHERE ba.userid = 10 AND ba.completed = 1 AND b.course = ?
+                    ORDER BY bo.courseendtime DESC", [$courseid])) {
                     $date = $result->courseendtime;
                 } else {
                     $date = time();
